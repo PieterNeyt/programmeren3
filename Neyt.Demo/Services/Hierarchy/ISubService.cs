@@ -1,4 +1,4 @@
-﻿namespace Neyt.Demo;
+﻿namespace Neyt.Demo.Services.Hierarchy;
 
 public interface ISubService
 {

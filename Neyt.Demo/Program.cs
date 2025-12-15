@@ -1,4 +1,9 @@
 ﻿using Neyt.Demo;
+using Neyt.Demo.Services.Basics;
+using Neyt.Demo.Services.Hierarchy;
+using Neyt.Demo.Services.Lifecycle;
+using Neyt.Demo.Services.Lifecycle.Bad;
+using Neyt.Demo.Services.Lifecycle.Good;
 using Neyt.Framework;
 
 
@@ -48,5 +53,55 @@ Console.WriteLine("Resolving MainService...");
 var main = container2.GetService<IMainService>();
 
 main.DoMainTask();
+
+
+// STAP 3: Cycle Detection
+
+Console.WriteLine("\n=== DI Container Demo Stap 3: Cycle Detection ===");
+
+var services3 = new DiServiceCollection();
+
+// registreren slechte services
+services3.AddSingleton<BadServiceA, BadServiceA>();
+services3.AddSingleton<BadServiceB, BadServiceB>();
+services3.AddSingleton<BadServiceC, BadServiceC>();
+
+try
+{
+    var container3 = services3.BuildServiceProvider();
+    Console.WriteLine("FOUT: Dit had moeten crashen!");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"SUCCES: De fout is gevangen!");
+    Console.WriteLine($"Melding: {ex.Message}");
+}
+
+Console.WriteLine();
+
+
+Console.WriteLine("--- Test 3b: Valid Deep Dependency (A -> B -> C) ---");
+
+// registreren goede services
+var services3b = new DiServiceCollection();
+services3b.AddSingleton<GoodServiceA, GoodServiceA>();
+services3b.AddSingleton<GoodServiceB, GoodServiceB>();
+services3b.AddSingleton<GoodServiceC, GoodServiceC>();
+
+try
+{
+    var container3c = services3b.BuildServiceProvider();
+    Console.WriteLine("Container gebouwd. Nu GoodServiceA ophalen...");
+    
+    var service = container3c.GetService<GoodServiceA>();
+    service.DoWork();
+    
+    Console.WriteLine("SUCCES: Geen false positive detected.");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"FOUT: Er werd onterecht een fout gegooid!");
+    Console.WriteLine(ex.Message);
+}
 
 Console.ReadLine();
