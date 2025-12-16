@@ -129,6 +129,3 @@ catch(Exception ex)
 {
     Console.WriteLine($"FOUT: {ex.Message}");
 }
-
-Console.ReadLine();
-
