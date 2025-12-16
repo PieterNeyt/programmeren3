@@ -4,5 +4,5 @@ public class GoodServiceA
 {
     public GoodServiceA(GoodServiceB b) { }
         
-    public void DoWork() => Console.WriteLine("   -> GoodServiceA is working correctly!");
+    public void DoWork() => Console.WriteLine("GoodServiceA is working correctly");
 }

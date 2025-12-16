@@ -1,9 +1,11 @@
-﻿using Neyt.Demo;
+﻿using System.Reflection;
+using Neyt.Demo;
 using Neyt.Demo.Services.Basics;
 using Neyt.Demo.Services.Hierarchy;
 using Neyt.Demo.Services.Lifecycle;
 using Neyt.Demo.Services.Lifecycle.Bad;
 using Neyt.Demo.Services.Lifecycle.Good;
+using Neyt.Demo.Services.Reflection;
 using Neyt.Framework;
 
 
@@ -103,5 +105,30 @@ catch (Exception ex)
     Console.WriteLine($"FOUT: Er werd onterecht een fout gegooid!");
     Console.WriteLine(ex.Message);
 }
+Console.WriteLine();
+// STAP 4: Assembly Scanning
+Console.WriteLine("=== DI Container Demo Stap 4: Assembly Scanning ===");
+
+var services4 = new DiServiceCollection();
+
+var currentAssembly = Assembly.GetExecutingAssembly();
+
+// scannen op attribuut alles dat het Component attribuut heeft
+services4.RegisterByScanning(currentAssembly, type => type.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
+
+var container4 = services4.BuildServiceProvider();
+
+//testen of de homecontroller is geregistreerd en gevonden
+try 
+{
+    var controller = container4.GetService<HomeController>();
+    controller.Index();
+    Console.WriteLine("HomeController gevonden via scanning");
+}
+catch(Exception ex)
+{
+    Console.WriteLine($"FOUT: {ex.Message}");
+}
 
 Console.ReadLine();
+

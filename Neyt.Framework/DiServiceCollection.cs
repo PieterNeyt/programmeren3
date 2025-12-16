@@ -3,7 +3,7 @@
 using QuikGraph;
 using QuikGraph.Algorithms;
 using System.Linq;
-
+using System.Reflection;
 public class DiServiceCollection
 {
     private List<ServiceDescriptor> _descriptors = new List<ServiceDescriptor>();
@@ -17,6 +17,30 @@ public class DiServiceCollection
     public void AddSingleton<TService>(TService implementationInstance)
     {
         _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance, ServiceLifetime.SINGLETON));
+    }
+    
+    public void AddSingleton(Type serviceType, Type implementationType)
+    {
+        if (!serviceType.IsAssignableFrom(implementationType))
+        {
+            throw new ArgumentException($"{implementationType.Name} does not inherit from {serviceType.Name}");
+        }
+
+        _descriptors.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.SINGLETON));
+    }
+    public void RegisterByScanning(Assembly assembly, Func<Type, bool> predicate)
+    {
+        var foundTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract) 
+            .Where(predicate); 
+
+        foreach (var type in foundTypes)
+        {
+            // registreren van de klasse  
+            AddSingleton(type, type);
+            
+            Console.WriteLine($"Registered: {type.Name}");
+        }
     }
 
     public DiContainer BuildServiceProvider()

@@ -11,8 +11,8 @@ public class MainService : IMainService
 
     public void DoMainTask()
     {
-        Console.WriteLine(">> MainService starting...");
+        Console.WriteLine("MainService starting");
         _subService.DoSubTask(); 
-        Console.WriteLine(">> MainService finished.");
+        Console.WriteLine("MainService finished");
     }
 }

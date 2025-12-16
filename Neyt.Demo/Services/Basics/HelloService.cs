@@ -4,6 +4,6 @@ public class HelloService : IHelloService
 {
     public void SayHello()
     {
-        Console.WriteLine(">> Hello from the HelloService!");
+        Console.WriteLine("Hello from the HelloService");
     }
 }
