@@ -10,7 +10,6 @@ public class DiServiceCollection
     private List<ServiceDescriptor> _descriptors = new List<ServiceDescriptor>();
     private ILogger _logger = new ConsoleLogger();
 
-
     public void AddSingleton<TService, TImplementation>()
         where TImplementation : TService
     {
@@ -41,20 +40,19 @@ public class DiServiceCollection
         foreach (var type in foundTypes)
         {
             AddSingleton(type, type);
-            
             _logger.Log($"[Scanner] Registered: {type.Name}");
         }
     }
 
     public DiContainer BuildServiceProvider()
     {
-        //  Cycle Detection 
-        ValidateDependencyGraph();
-        
         if (!_descriptors.Any(d => d.ServiceType == typeof(ILogger)))
         {
             AddSingleton<ILogger>(_logger);
         }
+
+        // Cycle Detection 
+        ValidateDependencyGraph();
         
         return new DiContainer(_descriptors, _logger);
     }
@@ -62,17 +60,25 @@ public class DiServiceCollection
     private void ValidateDependencyGraph()
     {
         var graph = new BidirectionalGraph<Type, Edge<Type>>();
-
+        
         foreach (var descriptor in _descriptors)
         {
-            graph.AddVertex(descriptor.ImplementationType);
+           
+            Type typeToAdd = descriptor.ImplementationType ?? descriptor.ImplementationInstance?.GetType();
+
+            if (typeToAdd != null)
+            {
+                graph.AddVertex(typeToAdd);
+            }
         }
-
+        
         foreach (var descriptor in _descriptors)
         {
-            var serviceType = descriptor.ImplementationType;
             if (descriptor.ImplementationInstance != null)
                 continue; 
+
+            var serviceType = descriptor.ImplementationType;
+            if (serviceType == null) continue;
 
             var constructors = serviceType.GetConstructors();
             if (constructors.Length == 0) continue;
@@ -84,9 +90,12 @@ public class DiServiceCollection
                 var dependencyDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == param.ParameterType);
                 if (dependencyDescriptor != null)
                 {
-                    var dependencyType = dependencyDescriptor.ImplementationType;
-                    // Service naar Dependency
-                    graph.AddEdge(new Edge<Type>(serviceType, dependencyType));
+                    var dependencyType = dependencyDescriptor.ImplementationType ?? dependencyDescriptor.ImplementationInstance?.GetType();
+                    
+                    if (dependencyType != null)
+                    {
+                        graph.AddEdge(new Edge<Type>(serviceType, dependencyType));
+                    }
                 }
             }
         }

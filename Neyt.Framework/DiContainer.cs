@@ -1,4 +1,5 @@
-﻿using Neyt.Framework.Logging;
+﻿using Castle.DynamicProxy;
+using Neyt.Framework.Logging;
 
 namespace Neyt.Framework;
 
@@ -7,7 +8,8 @@ public class DiContainer
     private readonly List<ServiceDescriptor> _descriptors;
     private readonly Dictionary<Type, object> _singletonInstances = new Dictionary<Type, object>();
     private readonly ILogger _logger;
-    
+    private readonly ProxyGenerator _proxyGenerator = new ProxyGenerator();
+
     public DiContainer(List<ServiceDescriptor> descriptors, ILogger logger)
     {
         _descriptors = descriptors;
@@ -18,66 +20,60 @@ public class DiContainer
     {
         var descriptor = _descriptors.FirstOrDefault(x => x.ServiceType == serviceType);
 
-        if (descriptor == null)
-        {
-            throw new Exception($"Service of type {serviceType.Name} is not registered.");
-        }
-        
+        if (descriptor == null) throw new Exception($"Service of type {serviceType.Name} is not registered.");
+
+        // Singleton Cache check
         if (descriptor.Lifetime == ServiceLifetime.SINGLETON)
         {
-            if (descriptor.ImplementationInstance != null)
-            {
-                return descriptor.ImplementationInstance;
-            }
-
-            if (_singletonInstances.ContainsKey(serviceType))
-            {
-                return _singletonInstances[serviceType];
-            }
+            if (descriptor.ImplementationInstance != null) return descriptor.ImplementationInstance;
+            if (_singletonInstances.ContainsKey(serviceType)) return _singletonInstances[serviceType];
         }
-        
+
         var actualType = descriptor.ImplementationType;
         
-      
-        _logger.Log($"[Container] Creating new instance of {actualType.Name}");
+        _logger.Log($"[Container] Resolving {actualType.Name}");
         
         var constructors = actualType.GetConstructors();
+        if (constructors.Length == 0) throw new Exception($"Type {actualType.Name} has no public constructors.");
 
-        if (constructors.Length == 0)
-        {
-            throw new Exception($"Type {actualType.Name} has no public constructors.");
-        }
-        
-        var sortedConstructors = constructors
-            .OrderByDescending(c => c.GetParameters().Length)
-            .ToList();
-
+        var sortedConstructors = constructors.OrderByDescending(c => c.GetParameters().Length).ToList();
         var bestConstructor = sortedConstructors.First();
-        
+
+        // Ambiguity check
         if (sortedConstructors.Count > 1)
         {
             var firstCount = sortedConstructors[0].GetParameters().Length;
             var secondCount = sortedConstructors[1].GetParameters().Length;
-
-            if (firstCount == secondCount)
-            {
-                throw new Exception($"Ambiguous constructors found for {actualType.Name}. Multiple constructors have {firstCount} parameters.");
-            }
+            if (firstCount == secondCount) throw new Exception($"Ambiguous constructors for {actualType.Name}");
         }
-        
+
         var parameters = bestConstructor.GetParameters();
         var arguments = new object[parameters.Length];
-
         for (int i = 0; i < parameters.Length; i++)
         {
-            var parameterInfo = parameters[i];
-            var parameterType = parameterInfo.ParameterType;
-            
-            arguments[i] = GetService(parameterType);
+            arguments[i] = GetService(parameters[i].ParameterType);
         }
         
-        var instance = Activator.CreateInstance(actualType, arguments);
-        
+        bool needsInterception = actualType.GetMethods()
+            .Any(m => m.GetCustomAttributes(typeof(LogAttribute), true).Any());
+
+        object instance;
+
+        if (needsInterception)
+        {
+            _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.");
+            
+            var interceptor = new LogInterceptor(_logger);
+
+           
+            instance = _proxyGenerator.CreateClassProxy(actualType, arguments, interceptor);
+        }
+        else
+        { 
+            instance = Activator.CreateInstance(actualType, arguments);
+        }
+
+        // Singleton opslaan
         if (descriptor.Lifetime == ServiceLifetime.SINGLETON)
         {
             _singletonInstances[serviceType] = instance;
@@ -86,8 +82,5 @@ public class DiContainer
         return instance;
     }
 
-    public T GetService<T>()
-    {
-        return (T)GetService(typeof(T));
-    }
+    public T GetService<T>() => (T)GetService(typeof(T));
 }

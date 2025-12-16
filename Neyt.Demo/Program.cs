@@ -7,6 +7,7 @@ using Neyt.Demo.Services.Lifecycle.Bad;
 using Neyt.Demo.Services.Lifecycle.Good;
 using Neyt.Demo.Services.Reflection;
 using Neyt.Framework;
+using Neyt.Framework.Logging;
 
 
 //STAP 1: Singleton Basis
@@ -147,3 +148,23 @@ container5.GetService<HomeController>();
 
 Console.WriteLine("Klaar met ophalen.");
 
+// STAP 6: Interception 
+Console.WriteLine("\n=== DI Container Demo Stap 6: Interception ===");
+
+var services6 = new DiServiceCollection();
+
+services6.AddSingleton<ILogger>(new ConsoleLogger());
+
+services6.AddSingleton<InterceptedService, InterceptedService>();
+
+var container6 = services6.BuildServiceProvider();
+
+Console.WriteLine("Service ophalen (Proxy generatie gebeurt nu)...");
+var proxyService = container6.GetService<InterceptedService>();
+
+// Testen
+Console.WriteLine("\n-- Aanroepen van methode MET [Log] --");
+proxyService.DoSomethingImportant(); 
+
+Console.WriteLine("\n-- Aanroepen van methode ZONDER [Log] --");
+proxyService.DoNormalWork();
