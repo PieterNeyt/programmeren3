@@ -1,12 +1,15 @@
-﻿namespace Neyt.Framework;
-
+﻿using System.Reflection;
+using Neyt.Framework.Logging;
 using QuikGraph;
 using QuikGraph.Algorithms;
-using System.Linq;
-using System.Reflection;
+
+namespace Neyt.Framework;
+
 public class DiServiceCollection
 {
     private List<ServiceDescriptor> _descriptors = new List<ServiceDescriptor>();
+    private ILogger _logger = new ConsoleLogger();
+
 
     public void AddSingleton<TService, TImplementation>()
         where TImplementation : TService
@@ -28,27 +31,32 @@ public class DiServiceCollection
 
         _descriptors.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.SINGLETON));
     }
+    
     public void RegisterByScanning(Assembly assembly, Func<Type, bool> predicate)
     {
         var foundTypes = assembly.GetTypes()
-            .Where(t => t.IsClass && !t.IsAbstract) 
+            .Where(t => t.IsClass && !t.IsAbstract)
             .Where(predicate); 
 
         foreach (var type in foundTypes)
         {
-            // registreren van de klasse  
             AddSingleton(type, type);
             
-            Console.WriteLine($"Registered: {type.Name}");
+            _logger.Log($"[Scanner] Registered: {type.Name}");
         }
     }
 
     public DiContainer BuildServiceProvider()
     {
-        // valideren of er geen circulaire referenties zijn
+        //  Cycle Detection 
         ValidateDependencyGraph();
-
-        return new DiContainer(_descriptors);
+        
+        if (!_descriptors.Any(d => d.ServiceType == typeof(ILogger)))
+        {
+            AddSingleton<ILogger>(_logger);
+        }
+        
+        return new DiContainer(_descriptors, _logger);
     }
 
     private void ValidateDependencyGraph()
@@ -63,6 +71,9 @@ public class DiServiceCollection
         foreach (var descriptor in _descriptors)
         {
             var serviceType = descriptor.ImplementationType;
+            if (descriptor.ImplementationInstance != null)
+                continue; 
+
             var constructors = serviceType.GetConstructors();
             if (constructors.Length == 0) continue;
 
@@ -79,13 +90,12 @@ public class DiServiceCollection
                 }
             }
         }
-
+        
         if (graph.IsDirectedAcyclicGraph())
         {
             return;
         }
-
-        // opsporen wat de cirkel is voor de error message.
+        
         throw new Exception($"Cyclic dependency detected: {FindCyclePath(graph)}");
     }
     
@@ -96,14 +106,11 @@ public class DiServiceCollection
 
         foreach (var vertex in graph.Vertices)
         {
-            // collisionNode onthoudt waar de cirkel sluit
             if (FindCycleRecursive(vertex, graph, visited, recursionStack, out var collisionNode))
             {
                 var index = recursionStack.IndexOf(collisionNode);
                 var cyclePart = recursionStack.Skip(index).ToList();
-                
                 cyclePart.Add(collisionNode);
-
                 return string.Join(" -> ", cyclePart.Select(t => t.Name));
             }
         }
@@ -115,19 +122,13 @@ public class DiServiceCollection
         List<Type> stack, out Type collisionNode)
     {
         collisionNode = null;
-
         if (stack.Contains(current))
         {
-            
-            // Dit is de reden waardoor de cirkel sluit
             collisionNode = current;
             return true;
         }
 
-        if (visited.Contains(current))
-        {
-            return false;
-        }
+        if (visited.Contains(current)) return false;
 
         visited.Add(current);
         stack.Add(current);
@@ -136,11 +137,7 @@ public class DiServiceCollection
         {
             foreach (var edge in edges)
             {
-                // collisionNode doorgeven naar boven 
-                if (FindCycleRecursive(edge.Target, graph, visited, stack, out collisionNode))
-                {
-                    return true;
-                }
+                if (FindCycleRecursive(edge.Target, graph, visited, stack, out collisionNode)) return true;
             }
         }
 

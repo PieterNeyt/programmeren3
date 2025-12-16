@@ -129,3 +129,21 @@ catch(Exception ex)
 {
     Console.WriteLine($"FOUT: {ex.Message}");
 }
+Console.WriteLine();
+
+// STAP 5: Interne Logging
+Console.WriteLine("\n=== DI Container Demo Stap 5: Internal Logging ===");
+
+var services5 = new DiServiceCollection();
+
+services5.RegisterByScanning(Assembly.GetExecutingAssembly(), type => 
+    type.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
+
+services5.AddSingleton<IHelloService, HelloService>();
+
+var container5 = services5.BuildServiceProvider();
+
+container5.GetService<HomeController>();
+
+Console.WriteLine("Klaar met ophalen.");
+
