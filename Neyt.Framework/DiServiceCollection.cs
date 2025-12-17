@@ -46,15 +46,26 @@ public class DiServiceCollection
 
     public DiContainer BuildServiceProvider()
     {
-        if (!_descriptors.Any(d => d.ServiceType == typeof(ILogger)))
+        
+        ILogger loggerToUse = _logger;
+        
+        var userLoggerDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == typeof(ILogger));
+
+        if (userLoggerDescriptor != null)
+        {
+            if (userLoggerDescriptor.ImplementationInstance is ILogger registeredInstance)
+            {
+                loggerToUse = registeredInstance;
+            }
+        }
+        else
         {
             AddSingleton<ILogger>(_logger);
         }
-
-        // Cycle Detection 
+        
         ValidateDependencyGraph();
         
-        return new DiContainer(_descriptors, _logger);
+        return new DiContainer(_descriptors, loggerToUse);
     }
 
     private void ValidateDependencyGraph()
