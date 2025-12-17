@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using Neyt.Demo.Services.Reflection;
 using Neyt.Framework;
 using Neyt.Framework.Logging;
 
@@ -32,7 +31,7 @@ catch (Exception ex)
     return;
 }
 
-// 5. Router Opzetten
+//  Router Opzetten
 var logger = container.GetService<ILogger>();
 var router = new CommandRouter(container, assembly, logger);
 
@@ -43,9 +42,9 @@ Console.WriteLine(" > Home Index");
 Console.WriteLine(" > Home Log      (Demonstrates [Log])");
 Console.WriteLine(" > Home Timed    (Demonstrates [Timed])");
 Console.WriteLine(" > Home Mixed    (Demonstrates Both)");
+Console.WriteLine(" > Exit          (Closes application)");
 Console.WriteLine("--------------------------------------------\n");
 
-// 6. Main Application Loop
 while (true)
 {
     Console.ForegroundColor = ConsoleColor.Cyan;
