@@ -55,7 +55,8 @@ public class DiContainer
         }
         
         bool needsInterception = actualType.GetMethods()
-            .Any(m => m.GetCustomAttributes(typeof(LogAttribute), true).Any());
+            .Any(m => m.GetCustomAttributes(typeof(LogAttribute), true).Any() || 
+                      m.GetCustomAttributes(typeof(TimedAttribute), true).Any());
 
         object instance;
 
@@ -63,9 +64,8 @@ public class DiContainer
         {
             _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.");
             
-            var interceptor = new LogInterceptor(_logger);
-
-           
+            var interceptor = new AspectInterceptor(_logger);
+            
             instance = _proxyGenerator.CreateClassProxy(actualType, arguments, interceptor);
         }
         else

@@ -193,3 +193,18 @@ while (true)
 
     router.HandleInput(input);
 }
+
+//Timed vs logged vs normal methods
+
+Console.WriteLine("\n=== DI Container Demo Stap 6b: Interception Verschillende Attributen ===");
+Console.WriteLine("\n-- Aanroepen van methode MET [Log] --");
+proxyService.DoSomethingImportant();
+
+Console.WriteLine("\n-- Aanroepen van methode MET [Timed] --");
+proxyService.CalculateHugeSum();
+
+Console.WriteLine("\n-- Aanroepen van methode MET [Log] EN [Timed] --");
+proxyService.CombinedAction();
+
+Console.WriteLine("\n-- Aanroepen van methode ZONDER attributen --");
+proxyService.DoNormalWork();
