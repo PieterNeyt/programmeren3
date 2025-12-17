@@ -2,9 +2,18 @@
 
 public class ConsoleLogger : ILogger
 {
-    public void Log(string message)
+    
+    public LogLevel MinLevel { get; set; } = LogLevel.INFO; 
+
+    public void Log(string message, LogLevel level)
     {
-        Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] {message}");
+        if (level >= MinLevel)
+        {
+            var color = level == LogLevel.DEBUG ? ConsoleColor.Gray : ConsoleColor.White;
+            Console.ForegroundColor = color;
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{level}] {message}");
+            Console.ResetColor();
+        }
     }
 
     public void LogSection(string title)

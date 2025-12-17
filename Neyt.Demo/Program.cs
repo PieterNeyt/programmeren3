@@ -9,11 +9,33 @@ Console.WriteLine("============================================");
 Console.WriteLine("   Neyt DI Container - Final Demo App");
 Console.WriteLine("============================================");
 
+Console.WriteLine("Select Log Level:");
+Console.WriteLine(" [1] Normal (Info)  - Shows application logs only");
+Console.WriteLine(" [2] Verbose (Debug) - Shows container internals (creation/resolving)");
+Console.Write("Choice [1]: ");
+var choice = Console.ReadLine();
+
+LogLevel selectedLevel;
+if (choice?.Trim() == "2")
+{
+    selectedLevel= LogLevel.DEBUG;
+}
+else
+{
+   selectedLevel= LogLevel.INFO;
+}
+
+var myLogger = new ConsoleLogger();
+myLogger.MinLevel = selectedLevel;
+
+Console.WriteLine($"[System] Logger configured to: {selectedLevel}");
+
+
 // Service Collection aanmaken
 var services = new DiServiceCollection();
 var assembly = Assembly.GetExecutingAssembly();
 
-services.AddSingleton<ILogger>(new ConsoleLogger());
+services.AddSingleton<ILogger>(myLogger);
 
 // Interface Singleton registratie
 services.AddSingleton<IGreetingService, GreetingService>();

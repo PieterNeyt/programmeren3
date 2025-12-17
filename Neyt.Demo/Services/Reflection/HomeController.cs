@@ -33,27 +33,27 @@ public class HomeController
     [Action]
     public void Help()
     {
-        Console.WriteLine("Available actions acties: Index, Help, Log, Timed, Mixed.");
+        Console.WriteLine("Available actions: Index, Help, Log, Timed, Mixed.");
     }
 
     [Action]
     public void Log()
     {
-        Console.WriteLine("Demo: Calling method with [Log]");
+        _logger.Log("Demo: Calling method with [Log]", LogLevel.INFO);
         _interceptedService.DoSomethingImportant();
     }
 
     [Action]
     public void Timed()
     {
-        Console.WriteLine("Demo: Calling method with [Timed]");
+        _logger.Log("Demo: Calling method with [Timed]", LogLevel.INFO);
         _interceptedService.CalculateHugeSum();
     }
 
     [Action]
     public void Mixed()
     {
-        Console.WriteLine("Demo: Calling method with [Log] AND [Timed]");
+        _logger.Log("Demo: Calling method with [Log] AND [Timed]", LogLevel.INFO);
         _interceptedService.CombinedAction();
     }
     

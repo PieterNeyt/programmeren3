@@ -21,7 +21,7 @@ public class AspectInterceptor : IInterceptor
 
         if (hasLog)
         {
-            _logger.Log($"[Log] Start method: {invocation.Method.Name}");
+            _logger.Log($"[Log] Start method: {invocation.Method.Name}",LogLevel.INFO);
         }
 
         var stopwatch = new Stopwatch();
@@ -39,12 +39,12 @@ public class AspectInterceptor : IInterceptor
             if (hasTimed)
             {
                 stopwatch.Stop();
-                _logger.Log($"[Timed] Method {invocation.Method.Name} duurde {stopwatch.ElapsedMilliseconds} ms");
+                _logger.Log($"[Timed] Method {invocation.Method.Name} ran for {stopwatch.ElapsedMilliseconds} ms",LogLevel.INFO);
             }
 
             if (hasLog)
             {
-                _logger.Log($"[Log] End method: {invocation.Method.Name}");
+                _logger.Log($"[Log] End method: {invocation.Method.Name}",LogLevel.INFO);
             }
         }
     }

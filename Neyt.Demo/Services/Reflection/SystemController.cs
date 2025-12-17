@@ -1,6 +1,7 @@
 ﻿using Neyt.Demo.Services.Lifecycle.Bad;
 using Neyt.Framework.Attributes;
 using Neyt.Framework.DependencyInjection;
+using Neyt.Framework.Logging;
 
 namespace Neyt.Demo.Services.Reflection;
 
@@ -8,10 +9,17 @@ namespace Neyt.Demo.Services.Reflection;
 public class SystemController
 {
     
+    private readonly ILogger _logger;
+
+    public SystemController(ILogger logger)
+    {
+        _logger = logger;
+    }
+    
     [Action]
     public void Cycle()
     {
-        Console.WriteLine("[System] Attempting to build a container with circular dependencies...");
+        _logger.Log("[System] Attempting to build a container with circular dependencies...", LogLevel.INFO);
         
         var badServices = new DiServiceCollection();
         
@@ -22,12 +30,12 @@ public class SystemController
         try
         {
             var container = badServices.BuildServiceProvider();
-            Console.WriteLine("[FAIL] Container built unexpectedly!");
+            _logger.Log("[FAIL] Container built unexpectedly!", LogLevel.WARNING);
         }
         catch (Exception ex)
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"[SUCCESS] Caught expected error:\n   -> {ex.Message}");
+            _logger.Log($"[SUCCESS] Caught expected error: {ex.Message}", LogLevel.INFO);
             Console.ResetColor();
         }
     }

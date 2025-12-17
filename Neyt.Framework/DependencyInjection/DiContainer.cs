@@ -33,7 +33,7 @@ public class DiContainer
 
         var actualType = descriptor.ImplementationType;
 
-        _logger.Log($"[Container] Resolving {actualType.Name}");
+        _logger.Log($"[Container] Resolving {actualType.Name}", LogLevel.DEBUG);
 
         var constructors = actualType.GetConstructors();
         if (constructors.Length == 0) throw new Exception($"Type {actualType.Name} has no public constructors.");
@@ -64,7 +64,7 @@ public class DiContainer
 
         if (needsInterception)
         {
-            _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.");
+            _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.", LogLevel.DEBUG);
 
             var interceptor = new AspectInterceptor(_logger);
 

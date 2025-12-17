@@ -6,7 +6,8 @@ public class MockLogger : ILogger
 {
     public List<string> Messages { get; } = new List<string>();
 
-    public void Log(string message)
+   
+    public void Log(string message, LogLevel level)
     {
         Messages.Add(message);
     }

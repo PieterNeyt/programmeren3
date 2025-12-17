@@ -40,7 +40,7 @@ public class DiServiceCollection
         foreach (var type in foundTypes)
         {
             AddSingleton(type, type);
-            _logger.Log($"[Scanner] Registered: {type.Name}");
+            _logger.Log($"[Scanner] Registered: {type.Name}", LogLevel.DEBUG);
         }
     }
 
