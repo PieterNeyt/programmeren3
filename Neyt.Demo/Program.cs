@@ -168,3 +168,28 @@ proxyService.DoSomethingImportant();
 
 Console.WriteLine("\n-- Aanroepen van methode ZONDER [Log] --");
 proxyService.DoNormalWork();
+
+
+Console.WriteLine("\n=== DI Container Demo Stap 1b: Command Router ===");
+Console.WriteLine("Type een commando (bv 'Home Index' of 'Home Help'). Type 'exit' om te stoppen.");
+
+var servicesRouter = new DiServiceCollection();
+var assembly = Assembly.GetExecutingAssembly();
+
+// Registreer alles met component attribuut
+servicesRouter.RegisterByScanning(assembly, type => type.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
+
+var containerRouter = servicesRouter.BuildServiceProvider();
+var logger = containerRouter.GetService<ILogger>();
+
+var router = new CommandRouter(containerRouter, assembly, logger);
+
+while (true)
+{
+    Console.Write("> ");
+    var input = Console.ReadLine();
+
+    if (input?.ToLower() == "exit") break;
+
+    router.HandleInput(input);
+}
