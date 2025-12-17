@@ -1,64 +1,68 @@
 ﻿using System.Reflection;
+using Neyt.Framework.Attributes;
+using Neyt.Framework.DependencyInjection;
 using Neyt.Framework.Logging;
 
-namespace Neyt.Framework;
+namespace Neyt.Framework.Routing;
 
 public class CommandRouter
 {
     private readonly DiContainer _container;
-    private readonly Assembly _assemblyToScan;
     private readonly ILogger _logger;
+    
+    private readonly Dictionary<string, Type> _controllerCache;
 
     public CommandRouter(DiContainer container, Assembly assemblyToScan, ILogger logger)
     {
         _container = container;
-        _assemblyToScan = assemblyToScan;
         _logger = logger;
+        
+        _controllerCache = assemblyToScan.GetTypes()
+            .Where(t => t.Name.EndsWith("Controller", StringComparison.OrdinalIgnoreCase) && !t.IsAbstract && t.IsClass)
+            .ToDictionary(
+                keySelector: t => t.Name.Substring(0, t.Name.Length - "Controller".Length),
+                elementSelector: t => t,
+                comparer: StringComparer.OrdinalIgnoreCase
+            );
     }
 
     public void HandleInput(string inputLine)
     {
         if (string.IsNullOrWhiteSpace(inputLine)) return;
 
-        // Input splitsen
         var parts = inputLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2)
         {
-            Console.WriteLine("Gebruik formaat: [ControllerNaam] [ActieNaam]");
+            Console.WriteLine("Use the format: [ControllerName] [ActionName] (ex: Home Index)");
             return;
         }
 
         var controllerName = parts[0]; 
         var actionName = parts[1]; 
-
-        // controller zoeken met Type 
-        var controllerType = _assemblyToScan.GetTypes()
-            .FirstOrDefault(t => t.Name.Equals($"{controllerName}Controller", StringComparison.OrdinalIgnoreCase));
-
-        if (controllerType == null)
+        
+        if (!_controllerCache.TryGetValue(controllerName, out var controllerType))
         {
-            Console.WriteLine($"Controller '{controllerName}' niet gevonden.");
+            Console.WriteLine($"Controller '{controllerName}' not found (or doesn't end with 'Controller').");
             return;
         }
 
         try
         {
-            // instantie van controller ophalen via DI container
             var controllerInstance = _container.GetService(controllerType);
-
-            // zoeken naar methode in opgehaalde controller
+            
             var method = controllerType.GetMethod(actionName,
                 BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
 
             if (method == null)
             {
-                Console.WriteLine($"Actie '{actionName}' niet gevonden op {controllerType.Name}.");
+                Console.WriteLine($"Action '{actionName}' not found in {controllerType.Name}.");
                 return;
             }
             
+            // Checken op [Action] attribuut
             if (!method.GetCustomAttributes(typeof(ActionAttribute), true).Any())
             {
-                Console.WriteLine($"Methode '{actionName}' is geen publieke Action.");
+                Console.WriteLine($"Method '{actionName}' is not public [Action].");
                 return;
             }
             
@@ -67,7 +71,7 @@ public class CommandRouter
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Fout bij uitvoeren actie: {ex.Message}");
+            Console.WriteLine($"Error by invoking action: {ex.Message}");
             if (ex.InnerException != null) Console.WriteLine($"Details: {ex.InnerException.Message}");
         }
     }

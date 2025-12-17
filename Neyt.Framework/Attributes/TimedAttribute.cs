@@ -1,4 +1,4 @@
-﻿namespace Neyt.Framework;
+﻿namespace Neyt.Framework.Attributes;
 
 [AttributeUsage(AttributeTargets.Method)]
 public class TimedAttribute : Attribute

@@ -1,8 +1,9 @@
 ﻿using System.Diagnostics;
 using Castle.DynamicProxy;
+using Neyt.Framework.Attributes;
 using Neyt.Framework.Logging;
 
-namespace Neyt.Framework;
+namespace Neyt.Framework.Interception;
 
 public class AspectInterceptor : IInterceptor
 {
@@ -17,7 +18,7 @@ public class AspectInterceptor : IInterceptor
     {
         bool hasLog = invocation.Method.GetCustomAttributes(typeof(LogAttribute), true).Any();
         bool hasTimed = invocation.Method.GetCustomAttributes(typeof(TimedAttribute), true).Any();
-        
+
         if (hasLog)
         {
             _logger.Log($"[Log] Start method: {invocation.Method.Name}");
@@ -26,16 +27,15 @@ public class AspectInterceptor : IInterceptor
         var stopwatch = new Stopwatch();
         if (hasTimed)
         {
-            stopwatch.Start(); 
+            stopwatch.Start();
         }
-        
+
         try
         {
             invocation.Proceed();
         }
         finally
         {
-            
             if (hasTimed)
             {
                 stopwatch.Stop();

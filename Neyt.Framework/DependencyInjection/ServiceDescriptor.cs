@@ -1,4 +1,4 @@
-﻿namespace Neyt.Framework;
+﻿namespace Neyt.Framework.DependencyInjection;
 
 public class ServiceDescriptor
 {

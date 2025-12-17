@@ -1,6 +1,9 @@
 ﻿using System.Reflection;
-using Neyt.Framework;
+using Neyt.Demo.Services.Basics;
+using Neyt.Framework.Attributes;
+using Neyt.Framework.DependencyInjection;
 using Neyt.Framework.Logging;
+using Neyt.Framework.Routing;
 
 Console.WriteLine("============================================");
 Console.WriteLine("   Neyt DI Container - Final Demo App");
@@ -12,7 +15,10 @@ var assembly = Assembly.GetExecutingAssembly();
 
 services.AddSingleton<ILogger>(new ConsoleLogger());
 
-//  Assembly Scanning
+// Interface Singleton registratie
+services.AddSingleton<IGreetingService, GreetingService>();
+
+// Assembly Scanning
 Console.WriteLine("[System] Scanning assembly for components...");
 services.RegisterByScanning(assembly, type => type.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
 
@@ -31,18 +37,22 @@ catch (Exception ex)
     return;
 }
 
-//  Router Opzetten
 var logger = container.GetService<ILogger>();
 var router = new CommandRouter(container, assembly, logger);
 
 Console.WriteLine("\n[System] Router started. Type 'exit' to quit.");
 Console.WriteLine("--------------------------------------------");
-Console.WriteLine("Try commands like:");
-Console.WriteLine(" > Home Index");
-Console.WriteLine(" > Home Log      (Demonstrates [Log])");
-Console.WriteLine(" > Home Timed    (Demonstrates [Timed])");
-Console.WriteLine(" > Home Mixed    (Demonstrates Both)");
-Console.WriteLine(" > Exit          (Closes application)");
+Console.WriteLine("Try NORMAL commands:");
+Console.WriteLine(" > Home Index      (Shows Interface Injection)");
+Console.WriteLine(" > Home Log        (Demonstrates [Log])");
+Console.WriteLine(" > Home Timed      (Demonstrates [Timed])");
+Console.WriteLine(" > Home Mixed      (Demonstrates Both)");
+Console.WriteLine("");
+Console.WriteLine("Try ERROR commands (Validation Tests):");
+Console.WriteLine(" > System Cycle    (Attempts to build cyclic dependency -> Expect Error)");
+Console.WriteLine(" > Home Plain      (Public method without [Action] -> Expect Error)");
+Console.WriteLine(" > Home Secret     (Private method -> Expect Error)");
+Console.WriteLine(" > Home Fake       (Non-existent method -> Expect Error)");
 Console.WriteLine("--------------------------------------------\n");
 
 while (true)
@@ -57,7 +67,7 @@ while (true)
     if (input.Trim().ToLower() == "exit") break;
 
     router.HandleInput(input);
-    Console.WriteLine(); 
+    Console.WriteLine();
 }
 
 Console.WriteLine("Goodbye!");

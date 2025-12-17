@@ -1,7 +1,9 @@
 ﻿using Castle.DynamicProxy;
+using Neyt.Framework.Attributes;
+using Neyt.Framework.Interception;
 using Neyt.Framework.Logging;
 
-namespace Neyt.Framework;
+namespace Neyt.Framework.DependencyInjection;
 
 public class DiContainer
 {
@@ -30,9 +32,9 @@ public class DiContainer
         }
 
         var actualType = descriptor.ImplementationType;
-        
+
         _logger.Log($"[Container] Resolving {actualType.Name}");
-        
+
         var constructors = actualType.GetConstructors();
         if (constructors.Length == 0) throw new Exception($"Type {actualType.Name} has no public constructors.");
 
@@ -53,9 +55,9 @@ public class DiContainer
         {
             arguments[i] = GetService(parameters[i].ParameterType);
         }
-        
+
         bool needsInterception = actualType.GetMethods()
-            .Any(m => m.GetCustomAttributes(typeof(LogAttribute), true).Any() || 
+            .Any(m => m.GetCustomAttributes(typeof(LogAttribute), true).Any() ||
                       m.GetCustomAttributes(typeof(TimedAttribute), true).Any());
 
         object instance;
@@ -63,13 +65,13 @@ public class DiContainer
         if (needsInterception)
         {
             _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.");
-            
+
             var interceptor = new AspectInterceptor(_logger);
-            
+
             instance = _proxyGenerator.CreateClassProxy(actualType, arguments, interceptor);
         }
         else
-        { 
+        {
             instance = Activator.CreateInstance(actualType, arguments);
         }
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using Neyt.Framework;
+using Neyt.Framework.Attributes;
+using Neyt.Framework.DependencyInjection;
 using Neyt.Framework.Logging;
 using Xunit;
 

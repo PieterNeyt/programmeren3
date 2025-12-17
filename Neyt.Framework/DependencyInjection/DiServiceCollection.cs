@@ -3,7 +3,7 @@ using Neyt.Framework.Logging;
 using QuikGraph;
 using QuikGraph.Algorithms;
 
-namespace Neyt.Framework;
+namespace Neyt.Framework.DependencyInjection;
 
 public class DiServiceCollection
 {
@@ -20,7 +20,7 @@ public class DiServiceCollection
     {
         _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance, ServiceLifetime.SINGLETON));
     }
-    
+
     public void AddSingleton(Type serviceType, Type implementationType)
     {
         if (!serviceType.IsAssignableFrom(implementationType))
@@ -30,12 +30,12 @@ public class DiServiceCollection
 
         _descriptors.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.SINGLETON));
     }
-    
+
     public void RegisterByScanning(Assembly assembly, Func<Type, bool> predicate)
     {
         var foundTypes = assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
-            .Where(predicate); 
+            .Where(predicate);
 
         foreach (var type in foundTypes)
         {
@@ -46,9 +46,8 @@ public class DiServiceCollection
 
     public DiContainer BuildServiceProvider()
     {
-        
         ILogger loggerToUse = _logger;
-        
+
         var userLoggerDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == typeof(ILogger));
 
         if (userLoggerDescriptor != null)
@@ -62,19 +61,18 @@ public class DiServiceCollection
         {
             AddSingleton<ILogger>(_logger);
         }
-        
+
         ValidateDependencyGraph();
-        
+
         return new DiContainer(_descriptors, loggerToUse);
     }
 
     private void ValidateDependencyGraph()
     {
         var graph = new BidirectionalGraph<Type, Edge<Type>>();
-        
+
         foreach (var descriptor in _descriptors)
         {
-           
             Type typeToAdd = descriptor.ImplementationType ?? descriptor.ImplementationInstance?.GetType();
 
             if (typeToAdd != null)
@@ -82,11 +80,11 @@ public class DiServiceCollection
                 graph.AddVertex(typeToAdd);
             }
         }
-        
+
         foreach (var descriptor in _descriptors)
         {
             if (descriptor.ImplementationInstance != null)
-                continue; 
+                continue;
 
             var serviceType = descriptor.ImplementationType;
             if (serviceType == null) continue;
@@ -101,8 +99,9 @@ public class DiServiceCollection
                 var dependencyDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == param.ParameterType);
                 if (dependencyDescriptor != null)
                 {
-                    var dependencyType = dependencyDescriptor.ImplementationType ?? dependencyDescriptor.ImplementationInstance?.GetType();
-                    
+                    var dependencyType = dependencyDescriptor.ImplementationType ??
+                                         dependencyDescriptor.ImplementationInstance?.GetType();
+
                     if (dependencyType != null)
                     {
                         graph.AddEdge(new Edge<Type>(serviceType, dependencyType));
@@ -110,15 +109,15 @@ public class DiServiceCollection
                 }
             }
         }
-        
+
         if (graph.IsDirectedAcyclicGraph())
         {
             return;
         }
-        
+
         throw new Exception($"Cyclic dependency detected: {FindCyclePath(graph)}");
     }
-    
+
     private string FindCyclePath(BidirectionalGraph<Type, Edge<Type>> graph)
     {
         var visited = new HashSet<Type>();
