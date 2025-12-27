@@ -31,6 +31,10 @@
   - `[Timed]` — meet en logt de uitvoertijd (`Stopwatch`)
 - Methoden die geïntercepteerd worden moeten **`virtual`** zijn
 
+### Multi-level Logging
+- Ingebouwd logging-systeem met drie niveaus: `Debug`, `Info`, `Warning`.
+- **Debug-modus**: Toont de interne werking van de container (welke objecten op welk moment worden ge-resolve en wanneer er proxies worden gemaakt).
+
 ### Console Router (Mini-MVC)
 - Mapt console-commando’s naar controller-acties  
   (bv. `"Home Index" -> HomeController.Index()`)
@@ -142,13 +146,6 @@ dotnet run --project Neyt.Demo
 ```
 
 ### Unit tests uitvoeren
-
-Er zijn tests voorzien voor:
-
-* Service creatie
-* Cycle detection
-* Ambiguity checks
-* Interception
 
 ```bash
 dotnet test
