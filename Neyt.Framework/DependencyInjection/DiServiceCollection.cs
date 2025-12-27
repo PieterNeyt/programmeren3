@@ -7,8 +7,8 @@ namespace Neyt.Framework.DependencyInjection;
 
 public class DiServiceCollection
 {
-    private List<ServiceDescriptor> _descriptors = new List<ServiceDescriptor>();
-    private ILogger _logger = new ConsoleLogger();
+    private readonly List<ServiceDescriptor> _descriptors = new ();
+    private readonly ILogger _logger = new ConsoleLogger();
 
     public void AddSingleton<TService, TImplementation>()
         where TImplementation : TService
@@ -18,8 +18,12 @@ public class DiServiceCollection
 
     public void AddSingleton<TService>(TService implementationInstance)
     {
+        if (implementationInstance is null)
+            throw new ArgumentNullException(nameof(implementationInstance));
+
         _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance));
     }
+
 
     public void AddSingleton(Type serviceType, Type implementationType)
     {
@@ -59,7 +63,7 @@ public class DiServiceCollection
         }
         else
         {
-            AddSingleton<ILogger>(_logger);
+            AddSingleton(_logger);
         }
 
         ValidateDependencyGraph();
@@ -73,13 +77,20 @@ public class DiServiceCollection
 
         foreach (var descriptor in _descriptors)
         {
-            Type typeToAdd = descriptor.ImplementationType ?? descriptor.ImplementationInstance?.GetType();
+            Type? typeToAdd = descriptor.ImplementationType;
 
-            if (typeToAdd != null)
+            if (typeToAdd is null && descriptor.ImplementationInstance is not null)
+            {
+                typeToAdd = descriptor.ImplementationInstance.GetType();
+            }
+
+            if (typeToAdd is not null)
             {
                 graph.AddVertex(typeToAdd);
             }
         }
+
+
 
         foreach (var descriptor in _descriptors)
         {
@@ -127,9 +138,9 @@ public class DiServiceCollection
         {
             if (FindCycleRecursive(vertex, graph, visited, recursionStack, out var collisionNode))
             {
-                var index = recursionStack.IndexOf(collisionNode);
+                var index = recursionStack.IndexOf(collisionNode!);
                 var cyclePart = recursionStack.Skip(index).ToList();
-                cyclePart.Add(collisionNode);
+                cyclePart.Add(collisionNode!);
                 return string.Join(" -> ", cyclePart.Select(t => t.Name));
             }
         }
@@ -137,19 +148,19 @@ public class DiServiceCollection
         return "Unknown cycle";
     }
 
-    private bool FindCycleRecursive(Type current, BidirectionalGraph<Type, Edge<Type>> graph, HashSet<Type> visited,
-        List<Type> stack, out Type collisionNode)
+
+    private bool FindCycleRecursive(Type current, BidirectionalGraph<Type, Edge<Type>> graph, HashSet<Type> visited, List<Type> stack, out Type? collisionNode)
     {
         collisionNode = null;
+
         if (stack.Contains(current))
         {
             collisionNode = current;
             return true;
         }
 
-        if (visited.Contains(current)) return false;
+        if (!visited.Add(current)) return false; 
 
-        visited.Add(current);
         stack.Add(current);
 
         if (graph.TryGetOutEdges(current, out var edges))
@@ -163,4 +174,5 @@ public class DiServiceCollection
         stack.Remove(current);
         return false;
     }
+
 }

@@ -26,7 +26,12 @@ public class DiContainer
 
    
         if (descriptor.ImplementationInstance != null) return descriptor.ImplementationInstance;
-        if (_singletonInstances.ContainsKey(serviceType)) return _singletonInstances[serviceType];
+        if (_singletonInstances.TryGetValue(serviceType, out var existingInstance))
+        {
+            return existingInstance;
+        }
+
+
             
         var actualType = descriptor.ImplementationType;
 
@@ -65,17 +70,16 @@ public class DiContainer
 
             var interceptor = new AspectInterceptor(_logger);
 
-            instance = _proxyGenerator.CreateClassProxy(actualType, arguments, interceptor);
+            instance = _proxyGenerator.CreateClassProxy(actualType, arguments, interceptor) ?? throw new InvalidOperationException($"Failed to create proxy for {actualType.Name}");
         }
         else
         {
-            instance = Activator.CreateInstance(actualType, arguments);
+            instance = Activator.CreateInstance(actualType, arguments) ?? throw new InvalidOperationException($"Failed to create instance of {actualType.Name}");
         }
 
-      
         _singletonInstances[serviceType] = instance;
-        
         return instance;
+
     }
 
     public T GetService<T>() => (T)GetService(typeof(T));
