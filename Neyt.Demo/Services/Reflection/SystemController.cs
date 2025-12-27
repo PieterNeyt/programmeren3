@@ -1,4 +1,6 @@
-﻿using Neyt.Demo.Services.Lifecycle.Bad;
+﻿using Neyt.Demo.Services.Basics;
+using Neyt.Demo.Services.Lifecycle.Bad;
+using Neyt.Demo.Services.Lifecycle.Good;
 using Neyt.Framework.Attributes;
 using Neyt.Framework.DependencyInjection;
 using Neyt.Framework.Logging;
@@ -10,12 +12,13 @@ public class SystemController
 {
     
     private readonly ILogger _logger;
-
-    public SystemController(ILogger logger)
+    private readonly DiContainer _container;
+    
+    public SystemController(ILogger logger, DiContainer container)
     {
         _logger = logger;
+        _container = container;
     }
-    
     [Action]
     public void Cycle()
     {
@@ -39,4 +42,35 @@ public class SystemController
             Console.ResetColor();
         }
     }
+    [Action]
+    public void Greedy()
+    {
+        _logger.Log("[System] Testing Greedy Constructor selection...", LogLevel.INFO);
+        var service = _container.GetService<MultiCtorService>();
+        
+        if (service.Status.Contains("SUCCES"))
+            Console.ForegroundColor = ConsoleColor.Green;
+        else
+            Console.ForegroundColor = ConsoleColor.Red;
+
+        _logger.Log(service.Status, LogLevel.INFO);
+        Console.ResetColor();
+    }
+
+    [Action]
+    public void Deep()
+    {
+        _logger.Log("[System] Testing Deep Dependency Chain (A -> B -> C)...", LogLevel.INFO);
+        
+        // We bouwen even een kleine aparte container voor de 'Good' services
+        var goodServices = new DiServiceCollection();
+        goodServices.AddSingleton<GoodServiceA, GoodServiceA>();
+        goodServices.AddSingleton<GoodServiceB, GoodServiceB>();
+        goodServices.AddSingleton<GoodServiceC, GoodServiceC>();
+
+        var container = goodServices.BuildServiceProvider();
+        var serviceA = container.GetService<GoodServiceA>();
+        serviceA.DoWork();
+    }
+
 }
