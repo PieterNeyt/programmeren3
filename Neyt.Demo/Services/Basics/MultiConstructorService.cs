@@ -10,12 +10,12 @@ public class MultiCtorService
     
     public MultiCtorService()
     {
-        Status = "FOUT: Default constructor gekozen";
+        Status = "ERROR: Default constructor chosen";
     }
 
     
     public MultiCtorService(ILogger logger, IGreetingService greeting)
     {
-        Status = "SUCCES: Greedy constructor gekozen ";
+        Status = "SUCCES: Greedy constructor chosen ";
     }
 }

@@ -17,8 +17,8 @@ public class MainService : IMainService
 
     public void DoMainTask()
     {
-        _logger.Log("MainService starting", LogLevel.INFO);
+        _logger.Log("MainService starting", LogLevel.Info);
         _subService.DoSubTask(); 
-        _logger.Log("MainService finished", LogLevel.INFO);
+        _logger.Log("MainService finished", LogLevel.Info);
     }
 }

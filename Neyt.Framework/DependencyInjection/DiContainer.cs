@@ -8,9 +8,9 @@ namespace Neyt.Framework.DependencyInjection;
 public class DiContainer
 {
     private readonly List<ServiceDescriptor> _descriptors;
-    private readonly Dictionary<Type, object> _singletonInstances = new Dictionary<Type, object>();
+    private readonly Dictionary<Type, object> _singletonInstances = new();
     private readonly ILogger _logger;
-    private readonly ProxyGenerator _proxyGenerator = new ProxyGenerator();
+    private readonly ProxyGenerator _proxyGenerator = new();
 
     public DiContainer(List<ServiceDescriptor> descriptors, ILogger logger)
     {
@@ -24,16 +24,13 @@ public class DiContainer
 
         if (descriptor == null) throw new Exception($"Service of type {serviceType.Name} is not registered.");
 
-        // Singleton Cache check
-        if (descriptor.Lifetime == ServiceLifetime.SINGLETON)
-        {
-            if (descriptor.ImplementationInstance != null) return descriptor.ImplementationInstance;
-            if (_singletonInstances.ContainsKey(serviceType)) return _singletonInstances[serviceType];
-        }
-
+   
+        if (descriptor.ImplementationInstance != null) return descriptor.ImplementationInstance;
+        if (_singletonInstances.ContainsKey(serviceType)) return _singletonInstances[serviceType];
+            
         var actualType = descriptor.ImplementationType;
 
-        _logger.Log($"[Container] Resolving {actualType.Name}", LogLevel.DEBUG);
+        _logger.Log($"[Container] Resolving {actualType.Name}", LogLevel.Debug);
 
         var constructors = actualType.GetConstructors();
         if (constructors.Length == 0) throw new Exception($"Type {actualType.Name} has no public constructors.");
@@ -64,7 +61,7 @@ public class DiContainer
 
         if (needsInterception)
         {
-            _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.", LogLevel.DEBUG);
+            _logger.Log($"[Container] Interception detected for {actualType.Name}. Creating Proxy.", LogLevel.Debug);
 
             var interceptor = new AspectInterceptor(_logger);
 
@@ -75,12 +72,9 @@ public class DiContainer
             instance = Activator.CreateInstance(actualType, arguments);
         }
 
-        // Singleton opslaan
-        if (descriptor.Lifetime == ServiceLifetime.SINGLETON)
-        {
-            _singletonInstances[serviceType] = instance;
-        }
-
+      
+        _singletonInstances[serviceType] = instance;
+        
         return instance;
     }
 

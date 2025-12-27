@@ -33,7 +33,7 @@ public class CommandRouter
         var parts = inputLine.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if (parts.Length < 2)
         {
-            _logger.Log("Use the format: [ControllerName] [ActionName] (ex: Home Index)", LogLevel.INFO);
+            _logger.Log("Use the format: [ControllerName] [ActionName] (ex: Home Index)", LogLevel.Info);
             return;
         }
 
@@ -42,7 +42,7 @@ public class CommandRouter
         
         if (!_controllerCache.TryGetValue(controllerName, out var controllerType))
         {
-            _logger.Log($"Controller '{controllerName}' not found (or doesn't end with 'Controller').", LogLevel.WARNING);
+            _logger.Log($"Controller '{controllerName}' not found (or doesn't end with 'Controller').", LogLevel.Warning);
             return;
         }
 
@@ -55,25 +55,25 @@ public class CommandRouter
 
             if (method == null)
             {
-                _logger.Log($"Action '{actionName}' not found in {controllerType.Name}.", LogLevel.WARNING);
+                _logger.Log($"Action '{actionName}' not found in {controllerType.Name}.", LogLevel.Warning);
                 return;
             }
             
             if (!method.IsPublic || !method.GetCustomAttributes(typeof(ActionAttribute), true).Any())
             {
-                _logger.Log($"Method '{actionName}' is not public [Action].", LogLevel.WARNING);
+                _logger.Log($"Method '{actionName}' is not public [Action].", LogLevel.Warning);
                 return;
             }
             
-            _logger.Log($"[Router] Invoking {controllerType.Name}.{method.Name}", LogLevel.INFO);
+            _logger.Log($"[Router] Invoking {controllerType.Name}.{method.Name}", LogLevel.Info);
             method.Invoke(controllerInstance, null); 
         }
         catch (Exception ex)
         {
            
-            _logger.Log($"Error by invoking action: {ex.Message}", LogLevel.WARNING);
+            _logger.Log($"Error by invoking action: {ex.Message}", LogLevel.Warning);
             if (ex.InnerException != null) 
-                _logger.Log($"Details: {ex.InnerException.Message}", LogLevel.WARNING);
+                _logger.Log($"Details: {ex.InnerException.Message}", LogLevel.Warning);
         }
     }
 }

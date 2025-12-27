@@ -17,7 +17,7 @@ Console.WriteLine(" [2] Verbose (Debug) - Shows container internals (creation/re
 Console.Write("Choice [1]: ");
 var choice = Console.ReadLine();
 
-LogLevel selectedLevel = choice?.Trim() == "2" ? LogLevel.DEBUG : LogLevel.INFO;
+LogLevel selectedLevel = choice?.Trim() == "2" ? LogLevel.Debug : LogLevel.Info;
 
 var myLogger = new ConsoleLogger { MinLevel = selectedLevel };
 Console.WriteLine($"[System] Logger configured to: {selectedLevel}");
@@ -55,6 +55,7 @@ Console.WriteLine("\n[System] Router started. Type 'exit' to quit.");
 Console.WriteLine("--------------------------------------------");
 Console.WriteLine("Try NORMAL commands:");
 Console.WriteLine(" > Home Index      (Interface Injection Demo)");
+Console.WriteLine(" > Home Help");
 Console.WriteLine(" > Home Log        ([Log] Interception Demo)");
 Console.WriteLine(" > Home Timed      ([Timed] Interception Demo)");
 Console.WriteLine(" > Home Mixed      (Combined Interception Demo)");

@@ -4,6 +4,6 @@ public class GreetingService : IGreetingService
 {
     public string GetWelcomeMessage()
     {
-        return "Hello! This message is from the GreetingService singleton";
+        return "This message is from the GreetingService singleton";
     }
 }

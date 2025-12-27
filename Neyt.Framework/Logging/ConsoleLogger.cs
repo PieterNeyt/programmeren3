@@ -3,13 +3,13 @@
 public class ConsoleLogger : ILogger
 {
     
-    public LogLevel MinLevel { get; set; } = LogLevel.INFO; 
+    public LogLevel MinLevel { get; set; } = LogLevel.Info; 
 
     public void Log(string message, LogLevel level)
     {
         if (level >= MinLevel)
         {
-            var color = level == LogLevel.DEBUG ? ConsoleColor.Gray : ConsoleColor.White;
+            var color = level == LogLevel.Debug ? ConsoleColor.Gray : ConsoleColor.White;
             Console.ForegroundColor = color;
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss}] [{level}] {message}");
             Console.ResetColor();

@@ -27,7 +27,7 @@ public class HomeController
         Console.WriteLine(_greetingService.GetWelcomeMessage());
         Console.ResetColor();
 
-        Console.WriteLine("Welcome! Try different commands like 'Home Timed' or 'System Cycle'.");
+        Console.WriteLine("Welcome to the home page!");
     }
 
     [Action]
@@ -39,21 +39,21 @@ public class HomeController
     [Action]
     public void Log()
     {
-        _logger.Log("Demo: Calling method with [Log]", LogLevel.INFO);
+        _logger.Log("Demo: Calling method with [Log]", LogLevel.Info);
         _interceptedService.DoSomethingImportant();
     }
 
     [Action]
     public void Timed()
     {
-        _logger.Log("Demo: Calling method with [Timed]", LogLevel.INFO);
+        _logger.Log("Demo: Calling method with [Timed]", LogLevel.Info);
         _interceptedService.CalculateHugeSum();
     }
 
     [Action]
     public void Mixed()
     {
-        _logger.Log("Demo: Calling method with [Log] AND [Timed]", LogLevel.INFO);
+        _logger.Log("Demo: Calling method with [Log] AND [Timed]", LogLevel.Info);
         _interceptedService.CombinedAction();
     }
     

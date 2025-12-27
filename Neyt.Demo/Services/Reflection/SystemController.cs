@@ -22,7 +22,7 @@ public class SystemController
     [Action]
     public void Cycle()
     {
-        _logger.Log("[System] Attempting to build a container with circular dependencies...", LogLevel.INFO);
+        _logger.Log("[System] Attempting to build a container with circular dependencies", LogLevel.Info);
         
         var badServices = new DiServiceCollection();
         
@@ -32,37 +32,27 @@ public class SystemController
 
         try
         {
-            var container = badServices.BuildServiceProvider();
-            _logger.Log("[FAIL] Container built unexpectedly!", LogLevel.WARNING);
+            badServices.BuildServiceProvider();
+            _logger.Log("[FAIL] Container built unexpectedly!", LogLevel.Warning);
         }
         catch (Exception ex)
         {
-            Console.ForegroundColor = ConsoleColor.Green;
-            _logger.Log($"[SUCCESS] Caught expected error: {ex.Message}", LogLevel.INFO);
-            Console.ResetColor();
+            _logger.Log($"[SUCCESS] Caught expected error: {ex.Message}", LogLevel.Info);
         }
     }
     [Action]
     public void Greedy()
     {
-        _logger.Log("[System] Testing Greedy Constructor selection...", LogLevel.INFO);
+        _logger.Log("[System] Testing Greedy Constructor selection", LogLevel.Info);
         var service = _container.GetService<MultiCtorService>();
-        
-        if (service.Status.Contains("SUCCES"))
-            Console.ForegroundColor = ConsoleColor.Green;
-        else
-            Console.ForegroundColor = ConsoleColor.Red;
-
-        _logger.Log(service.Status, LogLevel.INFO);
-        Console.ResetColor();
+        _logger.Log(service.Status, LogLevel.Info);
     }
 
     [Action]
     public void Deep()
     {
-        _logger.Log("[System] Testing Deep Dependency Chain (A -> B -> C)...", LogLevel.INFO);
+        _logger.Log("[System] Testing Deep Dependency Chain (A -> B -> C)", LogLevel.Info);
         
-        // We bouwen even een kleine aparte container voor de 'Good' services
         var goodServices = new DiServiceCollection();
         goodServices.AddSingleton<GoodServiceA, GoodServiceA>();
         goodServices.AddSingleton<GoodServiceB, GoodServiceB>();

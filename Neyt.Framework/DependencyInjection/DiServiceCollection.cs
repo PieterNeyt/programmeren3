@@ -13,12 +13,12 @@ public class DiServiceCollection
     public void AddSingleton<TService, TImplementation>()
         where TImplementation : TService
     {
-        _descriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation), ServiceLifetime.SINGLETON));
+        _descriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation)));
     }
 
     public void AddSingleton<TService>(TService implementationInstance)
     {
-        _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance, ServiceLifetime.SINGLETON));
+        _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance));
     }
 
     public void AddSingleton(Type serviceType, Type implementationType)
@@ -28,7 +28,7 @@ public class DiServiceCollection
             throw new ArgumentException($"{implementationType.Name} does not inherit from {serviceType.Name}");
         }
 
-        _descriptors.Add(new ServiceDescriptor(serviceType, implementationType, ServiceLifetime.SINGLETON));
+        _descriptors.Add(new ServiceDescriptor(serviceType, implementationType));
     }
 
     public void RegisterByScanning(Assembly assembly, Func<Type, bool> predicate)
@@ -40,7 +40,7 @@ public class DiServiceCollection
         foreach (var type in foundTypes)
         {
             AddSingleton(type, type);
-            _logger.Log($"[Scanner] Registered: {type.Name}", LogLevel.DEBUG);
+            _logger.Log($"[Scanner] Registered: {type.Name}", LogLevel.Debug);
         }
     }
 

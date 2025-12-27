@@ -18,7 +18,7 @@ public class HierarchyController
     [Action]
     public void Run()
     {
-        _logger.Log("[Hierarchy Demo] Starten van de taak", LogLevel.INFO);
+        _logger.Log("[Hierarchy Demo] Starting the task", LogLevel.Info);
         _mainService.DoMainTask();
     }
 }
