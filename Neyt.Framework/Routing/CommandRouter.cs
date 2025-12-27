@@ -51,7 +51,7 @@ public class CommandRouter
             var controllerInstance = _container.GetService(controllerType);
             
             var method = controllerType.GetMethod(actionName,
-                BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase);
+                BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.IgnoreCase);
 
             if (method == null)
             {
@@ -59,7 +59,7 @@ public class CommandRouter
                 return;
             }
             
-            if (!method.GetCustomAttributes(typeof(ActionAttribute), true).Any())
+            if (!method.IsPublic || !method.GetCustomAttributes(typeof(ActionAttribute), true).Any())
             {
                 _logger.Log($"Method '{actionName}' is not public [Action].", LogLevel.WARNING);
                 return;
