@@ -9,9 +9,10 @@ public class CommandRouter
 {
     private readonly DiContainer _container;
     private readonly ILogger _logger;
-    
+    // Cache 
     private readonly Dictionary<string, Type> _controllerCache;
 
+    // initialiseert container
     public CommandRouter(DiContainer container, Assembly assemblyToScan, ILogger logger)
     {
         _container = container;

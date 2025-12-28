@@ -1,6 +1,4 @@
 ﻿using System.Reflection;
-using Neyt.Demo.Services.Basics;
-using Neyt.Demo.Services.Hierarchy;
 using Neyt.Framework.Attributes;
 using Neyt.Framework.DependencyInjection;
 using Neyt.Framework.Logging;
@@ -22,47 +20,39 @@ LogLevel selectedLevel = choice?.Trim() == "2" ? LogLevel.Debug : LogLevel.Info;
 var myLogger = new ConsoleLogger { MinLevel = selectedLevel };
 Console.WriteLine($"[System] Logger configured to: {selectedLevel}");
 
-
 //  Service Collection Initialisatie
 var services = new DiServiceCollection();
 var assembly = Assembly.GetExecutingAssembly();
 
 // logger registreren
 services.AddSingleton<ILogger>(myLogger);
-
 services.RegisterServicesByAttribute(assembly);
 
 // Assembly Scanning 
 services.RegisterByScanning(assembly, type => type.GetCustomAttributes(typeof(NeytControllerAttribute), true).Any());
 
 //  Container Bouwen
-DiContainer container;
-
-var tempContainer = services.BuildServiceProvider();
-services.AddSingleton(tempContainer);
-    
-container = services.BuildServiceProvider();
+var container = services.BuildServiceProvider();
 Console.WriteLine("[System] Container built successfully.");
-
 
 var logger = container.GetService<ILogger>();
 var router = new CommandRouter(container, assembly, logger);
 
 Console.WriteLine("\n[System] Router started. Type 'exit' to quit.");
 Console.WriteLine("--------------------------------------------");
-Console.WriteLine("Try NORMAL commands:");
+Console.WriteLine("NORMAL commands:");
 Console.WriteLine(" > Home Index      (Interface Injection Demo)");
 Console.WriteLine(" > Home Help");
 Console.WriteLine(" > Home Log        ([Log] Interception Demo)");
 Console.WriteLine(" > Home Timed      ([Timed] Interception Demo)");
 Console.WriteLine(" > Home Mixed      (Combined Interception Demo)");
 Console.WriteLine("");
-Console.WriteLine("Try ADVANCED commands:");
+Console.WriteLine("ADVANCED commands:");
 Console.WriteLine(" > Hierarchy Run   (Deep Interface Injection: Controller -> IMain -> ISub)");
 Console.WriteLine(" > System Greedy   (Greedy Constructor)");
 Console.WriteLine(" > System Deep     (Long dependency chain: A -> B -> C)");
 Console.WriteLine("");
-Console.WriteLine("Try ERROR commands:");
+Console.WriteLine("ERROR commands:");
 Console.WriteLine(" > System Cycle    (Attempts to build cyclic container -> Expect Error)");
 Console.WriteLine(" > Home Plain      (Public method without [Action] -> Expect Block)");
 Console.WriteLine(" > Home Secret     (Private method -> Expect Block)");

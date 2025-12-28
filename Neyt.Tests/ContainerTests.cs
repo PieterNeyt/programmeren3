@@ -211,4 +211,35 @@ public class ContainerTests
         // Act + Assert
         Assert.Throws<ArgumentException>(() => services.AddSingleton(typeof(ILogger), typeof(ServiceImpl)));
     }
+    
+   
+    public interface IAutoService { string GetValue(); }
+
+    [NeytService] 
+    public class AutoServiceImpl : IAutoService 
+    { 
+        public string GetValue() => "Auto"; 
+    }
+
+    [Fact]
+    public void RegisterServicesByAttribute_ShouldAutomaticallyRegisterImplementationAndInterface()
+    {
+        // Arrange
+        var services = new DiServiceCollection();
+        var assembly = typeof(AutoServiceImpl).Assembly;
+
+        // Act
+        services.RegisterServicesByAttribute(assembly);
+        var container = services.BuildServiceProvider();
+
+        // Assert
+        var classInstance = container.GetService<AutoServiceImpl>();
+        Assert.NotNull(classInstance);
+        
+        var interfaceInstance = container.GetService<IAutoService>();
+        Assert.NotNull(interfaceInstance);
+        Assert.IsType<AutoServiceImpl>(interfaceInstance);
+        
+        Assert.Same(classInstance, interfaceInstance);
+    }
 }

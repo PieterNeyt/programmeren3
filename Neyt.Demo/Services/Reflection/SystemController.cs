@@ -10,7 +10,6 @@ namespace Neyt.Demo.Services.Reflection;
 [NeytController]
 public class SystemController
 {
-    
     private readonly ILogger _logger;
     private readonly DiContainer _container;
     private readonly GoodServiceA _goodServiceA;
@@ -51,7 +50,7 @@ public class SystemController
     [Action]
     public void Deep()
     {
-        _logger.Log("[System] Using the pre-registered GoodServiceA", LogLevel.Info);
+        _logger.Log("[System] Using the GoodServiceA", LogLevel.Info);
         _goodServiceA.DoWork(); 
     }
 

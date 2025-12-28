@@ -11,12 +11,14 @@ public class DiServiceCollection
     private readonly List<ServiceDescriptor> _descriptors = new ();
     private readonly ILogger _logger = new ConsoleLogger();
 
+    // Registreer singleton via generics
     public void AddSingleton<TService, TImplementation>()
         where TImplementation : TService
     {
         _descriptors.Add(new ServiceDescriptor(typeof(TService), typeof(TImplementation)));
     }
-
+    
+    // Registreert bestaande instantie als singleton
     public void AddSingleton<TService>(TService implementationInstance)
     {
         if (implementationInstance is null)
@@ -24,7 +26,8 @@ public class DiServiceCollection
 
         _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance));
     }
-
+    
+    // registreert [NeytService] 
     public void RegisterServicesByAttribute(Assembly assembly)
     {
       
@@ -37,6 +40,7 @@ public class DiServiceCollection
             AddSingleton(implementationType, implementationType);
             _logger.Log($"[Scanner] Registered Service: {implementationType.Name}", LogLevel.Debug);
             
+            // Registreer alle interfaces die deze klasse implementeert
             var interfaces = implementationType.GetInterfaces();
             foreach (var interfaceType in interfaces)
             {
@@ -45,6 +49,7 @@ public class DiServiceCollection
             }
         }
     }
+    // Registreert expliciet een serviceType
     public void AddSingleton(Type serviceType, Type implementationType)
     {
         if (!serviceType.IsAssignableFrom(implementationType))
@@ -54,9 +59,10 @@ public class DiServiceCollection
 
         _descriptors.Add(new ServiceDescriptor(serviceType, implementationType));
     }
-
+   
     public void RegisterByScanning(Assembly assembly, Func<Type, bool> predicate)
     {
+        // types die voldoen aan de predicate
         var foundTypes = assembly.GetTypes()
             .Where(t => t.IsClass && !t.IsAbstract)
             .Where(predicate);
@@ -67,11 +73,12 @@ public class DiServiceCollection
             _logger.Log($"[Scanner] Registered: {type.Name}", LogLevel.Debug);
         }
     }
-
+    // Bouwen DiContainer en valideren dependency graph
     public DiContainer BuildServiceProvider()
     {
         ILogger loggerToUse = _logger;
 
+        // Kijk of gebruiker zelf een ILogger heeft geregistreerd 
         var userLoggerDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == typeof(ILogger));
 
         if (userLoggerDescriptor != null)
@@ -90,11 +97,12 @@ public class DiServiceCollection
 
         return new DiContainer(_descriptors, loggerToUse);
     }
-
+    // Bouwt dependency graph en controleert cyclische dependencies
     private void ValidateDependencyGraph()
     {
         var graph = new BidirectionalGraph<Type, Edge<Type>>();
 
+        // Voeg alle implementatie types toe als vertices
         foreach (var descriptor in _descriptors)
         {
             Type? typeToAdd = descriptor.ImplementationType;
@@ -111,7 +119,7 @@ public class DiServiceCollection
         }
 
 
-
+        // Voeg edges toe op basis van dependencies
         foreach (var descriptor in _descriptors)
         {
             if (descriptor.ImplementationInstance != null)
@@ -119,7 +127,7 @@ public class DiServiceCollection
 
             var serviceType = descriptor.ImplementationType;
             if (serviceType == null) continue;
-
+            
             var constructors = serviceType.GetConstructors();
             if (constructors.Length == 0) continue;
 
@@ -127,6 +135,7 @@ public class DiServiceCollection
 
             foreach (var param in bestConstructor.GetParameters())
             {
+                
                 var dependencyDescriptor = _descriptors.FirstOrDefault(d => d.ServiceType == param.ParameterType);
                 if (dependencyDescriptor != null)
                 {
@@ -140,7 +149,7 @@ public class DiServiceCollection
                 }
             }
         }
-
+        // Als de graph acyclisch is dan geen probleem
         if (graph.IsDirectedAcyclicGraph())
         {
             return;
@@ -148,7 +157,8 @@ public class DiServiceCollection
 
         throw new Exception($"Cyclic dependency detected: {FindCyclePath(graph)}");
     }
-
+    
+    // Probeert leesbaar pad van de cyclus te reconstrueren
     private string FindCyclePath(BidirectionalGraph<Type, Edge<Type>> graph)
     {
         var visited = new HashSet<Type>();
@@ -158,6 +168,7 @@ public class DiServiceCollection
         {
             if (FindCycleRecursive(vertex, graph, visited, recursionStack, out var collisionNode))
             {
+                // Bouwt cycluspad vanaf punt van botsing 
                 var index = recursionStack.IndexOf(collisionNode!);
                 var cyclePart = recursionStack.Skip(index).ToList();
                 cyclePart.Add(collisionNode!);
@@ -168,21 +179,21 @@ public class DiServiceCollection
         return "Unknown cycle";
     }
 
-
+    // Recursieve search om cyclus te detecteren
     private bool FindCycleRecursive(Type current, BidirectionalGraph<Type, Edge<Type>> graph, HashSet<Type> visited, List<Type> stack, out Type? collisionNode)
     {
         collisionNode = null;
-
+        
         if (stack.Contains(current))
         {
             collisionNode = current;
             return true;
-        }
-
+        } 
+        //  geen cyclus via deze weg
         if (!visited.Add(current)) return false; 
 
         stack.Add(current);
-
+        //alle uitgaande dependencies afgaan
         if (graph.TryGetOutEdges(current, out var edges))
         {
             foreach (var edge in edges)
@@ -190,7 +201,6 @@ public class DiServiceCollection
                 if (FindCycleRecursive(edge.Target, graph, visited, stack, out collisionNode)) return true;
             }
         }
-
         stack.Remove(current);
         return false;
     }
