@@ -19,25 +19,23 @@
 - Implementatie via **QuikGraph** 
 
 ### Assembly Scanning
-- Automatische registratie van:
-  - Services
-  - Controllers
-- Op basis van attributen zoals `[Component]`
+- Automatische registratie van klassen met het `[NeytService]` attribuut.
+- Automatische registratie van controllers met het `[NeytController]` attribuut.
+- Ondersteuning voor custom scanning via predicates.
 
 ### Interception (AOP)
-- Gebaseerd op **Castle.Core** (Dynamic Proxies)
-- Ondersteunde interceptors:
-  - `[Log]` — logt start en einde van methode-aanroepen
-  - `[Timed]` — meet en logt de uitvoertijd (`Stopwatch`)
-- Methoden die geïntercepteerd worden moeten **`virtual`** zijn
+- Dynamic Proxy-techniek via **Castle.Core**.
+- `[Log]`: Logt entry en exit van een methode naar de standaard output.
+- `[Timed]`: Meet de doorlooptijd van een methode.
+- *Belangrijk:* Methoden moeten **`virtual`** zijn om interceptie mogelijk te maken.
 
 ### Multi-level Logging
-- Ingebouwd logging-systeem met drie niveaus: `Debug`, `Info`, `Warning`.
-- **Debug-modus**: Toont de interne werking van de container (welke objecten op welk moment worden ge-resolve en wanneer er proxies worden gemaakt).
+- Ingebouwd framework met niveaus: `Debug`, `Info`, `Warning`.
+- In **Debug-modus** is exact te volgen welke objecten wanneer ge-instancieerd worden (beperkt reflection na opstart).
 
-### Console Router (Mini-MVC)
-- Mapt console-commando’s naar controller-acties  
-  (bv. `"Home Index" -> HomeController.Index()`)
+### Command Router
+- Een keyboard-input router die tekst commando's mapt naar `[Action]` methodes op controllers.
+- Formaat: `[Controller Naam] [Action Naam]` (bijv. `Home Index`).
 
 ---
 
@@ -45,34 +43,28 @@
 
 ### 1. Container opzetten
 
-Gebruik `DiServiceCollection` om services te registreren, manueel of via assembly scanning.
+Gebruik `DiServiceCollection` om services te registreren en de container te bouwen.
 
 ```csharp
-using Neyt.Framework;
+using Neyt.Framework.DependencyInjection;
+using Neyt.Framework.Logging;
 using System.Reflection;
 
-// 1. Initialiseer de service collectie
 var services = new DiServiceCollection();
-
-// 2. Manuele registratie (interface -> implementatie)
-services.AddSingleton<ILogger>(new ConsoleLogger());
-
-// 3. Assembly scanning via attributen
 var assembly = Assembly.GetExecutingAssembly();
-services.RegisterByScanning(
-    assembly,
-    type => type.GetCustomAttributes(typeof(ComponentAttribute), true).Any()
-);
 
-// 4. Bouw de container (cycle detection gebeurt hier)
-try
-{
-    var container = services.BuildServiceProvider();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Cycle detected: {ex.Message}");
-}
+// 1.  registratie
+services.AddSingleton<ILogger>(new ConsoleLogger { MinLevel = LogLevel.Debug });
+
+// 2. Registratie via attributen ([NeytService])
+services.RegisterServicesByAttribute(assembly);
+
+// 3. Scanning voor controllers
+services.RegisterByScanning(assembly, type => 
+    type.GetCustomAttributes(typeof(NeytControllerAttribute), true).Any());
+
+// 4. Bouwen (inclusief Cycle Detection)
+var container = services.BuildServiceProvider();
 ````
 
 ---
@@ -85,15 +77,14 @@ Methodes die geïntercepteerd worden moeten **`virtual`** zijn.
 ```csharp
 using Neyt.Framework;
 
-[Component]
+[NeytService]
 public class CalculationService
 {
     [Log]
     [Timed]
-    public virtual void CalculateHeavySum()
+    public virtual void Calculate()
     {
-        Thread.Sleep(500);
-        Console.WriteLine("Berekening uitgevoerd.");
+        // Deze methode wordt gelogd en getimed
     }
 }
 ```
@@ -105,7 +96,7 @@ public class CalculationService
 Controllers kunnen `[Action]`-methodes bevatten die via tekstcommando’s aangeroepen worden.
 
 ```csharp
-[Component]
+[NeytController]
 public class HomeController
 {
     private readonly CalculationService _service;
@@ -118,8 +109,7 @@ public class HomeController
     [Action]
     public void Index()
     {
-        Console.WriteLine("Home Page");
-        _service.CalculateHeavySum();
+        _service.Calculate();
     }
 }
 ```
