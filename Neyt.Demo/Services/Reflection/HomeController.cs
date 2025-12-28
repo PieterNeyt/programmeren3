@@ -4,7 +4,7 @@ using Neyt.Framework.Logging;
 
 namespace Neyt.Demo.Services.Reflection;
 
-[Component]
+[NeytController]
 public class HomeController
 {
     private readonly ILogger _logger;

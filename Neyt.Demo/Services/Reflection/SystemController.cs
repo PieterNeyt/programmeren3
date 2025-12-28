@@ -7,17 +7,18 @@ using Neyt.Framework.Logging;
 
 namespace Neyt.Demo.Services.Reflection;
 
-[Component]
+[NeytController]
 public class SystemController
 {
     
     private readonly ILogger _logger;
     private readonly DiContainer _container;
-    
-    public SystemController(ILogger logger, DiContainer container)
+    private readonly GoodServiceA _goodServiceA;
+    public SystemController(ILogger logger, DiContainer container,GoodServiceA goodServiceA)
     {
         _logger = logger;
         _container = container;
+        _goodServiceA = goodServiceA;
     }
     [Action]
     public void Cycle()
@@ -47,20 +48,11 @@ public class SystemController
         var service = _container.GetService<MultiCtorService>();
         _logger.Log(service.Status, LogLevel.Info);
     }
-
     [Action]
     public void Deep()
     {
-        _logger.Log("[System] Testing Deep Dependency Chain (A -> B -> C)", LogLevel.Info);
-        
-        var goodServices = new DiServiceCollection();
-        goodServices.AddSingleton<GoodServiceA, GoodServiceA>();
-        goodServices.AddSingleton<GoodServiceB, GoodServiceB>();
-        goodServices.AddSingleton<GoodServiceC, GoodServiceC>();
-
-        var container = goodServices.BuildServiceProvider();
-        var serviceA = container.GetService<GoodServiceA>();
-        serviceA.DoWork();
+        _logger.Log("[System] Using the pre-registered GoodServiceA", LogLevel.Info);
+        _goodServiceA.DoWork(); 
     }
 
 }

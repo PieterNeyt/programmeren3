@@ -183,7 +183,7 @@ public class ContainerTests
         Assert.Contains(mockLogger.Messages, m => m.Contains("not public"));
     }
     
-    [Component] class ScannedA { }
+    [NeytController] class ScannedA { }
     class ScannedB { } 
 
     [Fact]
@@ -194,7 +194,7 @@ public class ContainerTests
         var assembly = typeof(ScannedA).Assembly;
 
         // Act
-        services.RegisterByScanning(assembly, t => t.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
+        services.RegisterByScanning(assembly, t => t.GetCustomAttributes(typeof(NeytControllerAttribute), true).Any());
         var container = services.BuildServiceProvider();
 
         // Assert

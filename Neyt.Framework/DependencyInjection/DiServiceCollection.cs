@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Neyt.Framework.Attributes;
 using Neyt.Framework.Logging;
 using QuikGraph;
 using QuikGraph.Algorithms;
@@ -24,7 +25,26 @@ public class DiServiceCollection
         _descriptors.Add(new ServiceDescriptor(typeof(TService), implementationInstance));
     }
 
+    public void RegisterServicesByAttribute(Assembly assembly)
+    {
+      
+        var serviceTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.GetCustomAttributes(typeof(NeytServiceAttribute), true).Any());
 
+        foreach (var implementationType in serviceTypes)
+        {
+           
+            AddSingleton(implementationType, implementationType);
+            _logger.Log($"[Scanner] Registered Service: {implementationType.Name}", LogLevel.Debug);
+            
+            var interfaces = implementationType.GetInterfaces();
+            foreach (var interfaceType in interfaces)
+            {
+                AddSingleton(interfaceType, implementationType);
+                _logger.Log($"[Scanner] Registered Interface: {interfaceType.Name} -> {implementationType.Name}", LogLevel.Debug);
+            }
+        }
+    }
     public void AddSingleton(Type serviceType, Type implementationType)
     {
         if (!serviceType.IsAssignableFrom(implementationType))

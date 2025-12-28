@@ -1,4 +1,6 @@
-﻿namespace Neyt.Demo.Services.Lifecycle.Bad;
+﻿using Neyt.Framework.Attributes;
+
+namespace Neyt.Demo.Services.Lifecycle.Bad;
 
 public class BadServiceB
 {

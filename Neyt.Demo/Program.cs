@@ -30,13 +30,10 @@ var assembly = Assembly.GetExecutingAssembly();
 // logger registreren
 services.AddSingleton<ILogger>(myLogger);
 
-// Interface Mapping 
-services.AddSingleton<IGreetingService, GreetingService>();
-services.AddSingleton<IMainService, MainService>();
-services.AddSingleton<ISubService, SubService>();
+services.RegisterServicesByAttribute(assembly);
 
 // Assembly Scanning 
-services.RegisterByScanning(assembly, type => type.GetCustomAttributes(typeof(ComponentAttribute), true).Any());
+services.RegisterByScanning(assembly, type => type.GetCustomAttributes(typeof(NeytControllerAttribute), true).Any());
 
 //  Container Bouwen
 DiContainer container;

@@ -1,6 +1,6 @@
 ﻿namespace Neyt.Framework.Attributes;
 
 [AttributeUsage(AttributeTargets.Class)]
-public class ComponentAttribute : Attribute
+public class NeytControllerAttribute : Attribute
 {
 }

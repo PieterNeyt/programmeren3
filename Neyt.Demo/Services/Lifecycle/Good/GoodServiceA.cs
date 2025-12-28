@@ -1,5 +1,8 @@
-﻿namespace Neyt.Demo.Services.Lifecycle.Good;
+﻿using Neyt.Framework.Attributes;
 
+namespace Neyt.Demo.Services.Lifecycle.Good;
+
+[NeytService]
 public class GoodServiceA
 {
     public GoodServiceA(GoodServiceB b) { }

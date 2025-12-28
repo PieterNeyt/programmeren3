@@ -1,5 +1,8 @@
-﻿namespace Neyt.Demo.Services.Basics;
+﻿using Neyt.Framework.Attributes;
 
+namespace Neyt.Demo.Services.Basics;
+
+[NeytService]
 public class GreetingService : IGreetingService
 {
     public string GetWelcomeMessage()

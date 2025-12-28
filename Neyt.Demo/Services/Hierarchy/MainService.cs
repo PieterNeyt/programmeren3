@@ -1,8 +1,9 @@
-﻿using Neyt.Framework.Logging;
+﻿using Neyt.Framework.Attributes;
+using Neyt.Framework.Logging;
 
 namespace Neyt.Demo.Services.Hierarchy;
 
-
+[NeytService]
 public class MainService : IMainService
 {
     private readonly ISubService _subService;

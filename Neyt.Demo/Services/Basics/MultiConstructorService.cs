@@ -3,7 +3,7 @@ using Neyt.Framework.Logging;
 
 namespace Neyt.Demo.Services.Basics;
 
-[Component]
+[NeytService]
 public class MultiCtorService
 {
     public string Status { get; }

@@ -2,7 +2,7 @@
 
 namespace Neyt.Demo.Services.Reflection;
 
-[Component]
+[NeytService]
 public class InterceptedService
 {
     [Log]
